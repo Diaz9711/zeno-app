@@ -4375,7 +4375,14 @@ function AIAgent(){
     try{
       const raw=await aiCall({system:zenoSys,messages:nm.map(m=>({role:m.r==="user"?"user":"assistant",content:m.c})),max_tokens:350});
       setZMsgs([...nm,{r:"ai",c:zenoCheckOutput(raw,L||"es")||"..."}]);
-    }catch{setZMsgs([...nm,{r:"ai",c:L==="es"?"(Sin conexión. Estoy aquí cuando vuelvas 💚)":"(Offline. I'm here when you're back 💚)"}]);}
+    }catch(e){
+      const em=e?.message||"";
+      const msg=em.includes("401")||em.includes("403")||em.includes("API key")
+        ?"⚡ API key inválida — actualiza en Perfil → API Key"
+        :em.includes("429")?"⏳ Límite alcanzado, espera 1 min"
+        :"⚠️ Error: "+(em.slice(0,60)||"Sin conexión");
+      setZMsgs([...nm,{r:"ai",c:msg}]);
+    }
     setZLoad(false);
   };
 
