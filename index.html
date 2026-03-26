@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ZENO ⚡️</title>
+  <meta name="theme-color" content="#0E1218" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+
+  <!-- Supabase — optional cloud sync (configure SUPABASE_URL and SUPABASE_ANON_KEY) -->
+  <script>
+    window.SUPABASE_URL = '';
+    window.SUPABASE_ANON_KEY = '';
+  </script>
+  <!-- Uncomment when Supabase is configured:
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  -->
+
+  <!-- React 18 UMD — sets window.React and window.ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+
+  <!-- Babel Standalone — used programmatically, NOT as a page transformer -->
+  <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #0E1218; }
+    #root { height: 100%; }
+    #splash {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: #0E1218; gap: 16px; z-index: 9999;
+      transition: opacity .4s ease;
+    }
+    #splash .dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: #5B9E8F;
+      display: inline-block;
+      animation: splashDot 1.4s ease-in-out infinite;
+    }
+    #splash .dot:nth-child(2){ animation-delay: .2s; }
+    #splash .dot:nth-child(3){ animation-delay: .4s; }
+    @keyframes splashDot {
+      0%,60%,100% { transform: translateY(0); opacity: .3; }
+      30%         { transform: translateY(-8px); opacity: 1; }
+    }
+    #splash p {
+      font-family: Georgia, serif;
+      font-size: 22px; letter-spacing: 4px;
+      color: #E8E4DE; opacity: .7;
+    }
+    #splash .err {
+      font-family: monospace; font-size: 13px;
+      color: #ff6b6b; opacity: 1; letter-spacing: 0;
+      max-width: 80vw; text-align: center; white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <p>ZENO</p>
+    <div>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+
+  <div id="root"></div>
+
+  <script>
+    // Minimal require() shim — maps CommonJS imports to UMD globals
+    function _require(id) {
+      if (id === 'react')            return window.React;
+      if (id === 'react-dom')        return window.ReactDOM;
+      if (id === 'react-dom/client') return window.ReactDOM;
+      throw new Error('[ZENO] Cannot require: ' + id);
+    }
+
+    async function loadZeno() {
+      const splash = document.getElementById('splash');
+      try {
+        // 1. Fetch JSX source
+        const res = await fetch('./zeno-v6.jsx');
+        if (!res.ok) throw new Error('HTTP ' + res.status + ' loading zeno-v6.jsx');
+        const src = await res.text();
+
+        // 2. Transpile: JSX + ES modules → CommonJS via Babel
+        const out = Babel.transform(src, {
+          presets:    ['react'],
+          plugins:    ['transform-modules-commonjs'],
+          filename:   'zeno-v6.jsx',
+          sourceType: 'module',
+          compact:    true,
+          comments:   false
+        });
+
+        // 3. Wrap and execute as a CommonJS module
+        const mod = { exports: {} };
+        // new Function avoids strict-mode conflicts with some patterns
+        const factory = new Function('require', 'module', 'exports', '__filename', '__dirname', out.code);
+        factory(_require, mod, mod.exports, 'zeno-v6.jsx', '/');
+
+        // 4. Grab the default export
+        const ZenoApp = mod.exports['default'] || mod.exports;
+        if (typeof ZenoApp !== 'function') {
+          throw new Error('Default export is not a function (got ' + typeof ZenoApp + ')');
+        }
+
+        // 5. Mount React 18
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(ZenoApp));
+
+        // 6. Fade out splash
+        splash.style.opacity = '0';
+        setTimeout(() => splash.remove(), 400);
+
+      } catch (err) {
+        console.error('[ZENO] Fatal:', err);
+        splash.innerHTML =
+          '<p style="font-family:Georgia;font-size:20px;letter-spacing:4px;color:#E8E4DE;opacity:.7;margin-bottom:12px">ZENO</p>' +
+          '<p class="err">&#x26A0; ' + err.message + '</p>';
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadZeno);
+    } else {
+      loadZeno();
+    }
+  </script>
+  <script>
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(()=>{});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "zeno-app",
+  "version": "1.3.0",
+  "description": "ZENO — Neurointelligent companion for ADHD & neurodivergent minds",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "python3 -m http.server 3000",
+    "cap:init": "npx @capacitor/cli init ZENO com.zeno.app --web-dir .",
+    "cap:ios": "npx @capacitor/cli add ios",
+    "cap:sync": "npx @capacitor/cli sync",
+    "cap:open": "npx @capacitor/cli open ios"
+  }
+}
