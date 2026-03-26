@@ -7,7 +7,10 @@
       "Bash(pip3 install:*)",
       "Bash(python3 -c \"import PIL; print\\(''OK'', PIL.__version__\\)\")",
       "Bash(python3:*)",
-      "Bash(cat /Users/diz9711/Desktop/Zeno/netlify/functions/*.js)"
+      "Bash(cat /Users/diz9711/Desktop/Zeno/netlify/functions/*.js)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

@@ -4393,7 +4393,17 @@ function AIAgent(){
       const enriched=memStr+"\n\n"+brainCtx+"\n\nADAPTA SIEMPRE tus respuestas al estado neurológico actual. Si la energía/motivación es baja, reduce carga cognitiva. Si el estado emocional es bajo, prioriza validación sobre consejos. Máximo 3 frases.";
       const raw=await aiCall({system:t.personaSys(p.name,enriched),messages:nx.map(m=>({role:m.role,content:m.content})),max_tokens:600,noCache:true});
       setHist(h=>({...h,[p.id]:[...nx,{role:"assistant",content:zenoCheckOutput(raw||"...",L||"es"),ts:Date.now()}]}));
-    }catch{setHist(h=>({...h,[p.id]:[...nx,{role:"assistant",content:"...",ts:Date.now()}]}));}
+    }catch(e){
+      const errMsg=e?.message||"Error desconocido";
+      const friendly=errMsg.includes("API key")||errMsg.includes("401")||errMsg.includes("403")
+        ?"⚡ API key inválida — ve a Perfil → API Key"
+        :errMsg.includes("429")
+        ?"⏳ Demasiadas peticiones, espera 1 minuto"
+        :errMsg.includes("fetch")||errMsg.includes("network")||errMsg.includes("Failed")
+        ?"📡 Sin conexión a internet"
+        :"⚠️ "+errMsg.slice(0,80);
+      setHist(h=>({...h,[p.id]:[...nx,{role:"assistant",content:friendly,ts:Date.now()}]}));
+    }
     setPLoad(false);
   };
 
