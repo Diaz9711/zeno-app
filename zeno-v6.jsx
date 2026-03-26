@@ -513,7 +513,9 @@ LIMITS: No diagnoses. No medication advice. No guaranteed results.`;},
 // ── e.g. "https://your-app.vercel.app/api/ai"                        ──
 // ── Your proxy just forwards the body to Anthropic with the API key  ──
 // ══════════════════════════════════════════════════════════════════════════
-const PROXY_URL = null; // No proxy needed — Gemini allows direct browser calls
+const PROXY_URL = (typeof window!=='undefined'&&window.location.hostname!=='localhost'&&window.location.hostname!=='127.0.0.1')
+  ? '/.netlify/functions/ai'
+  : null;
 const GEMINI_DIRECT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 const AI_MODEL = "gemini-1.5-flash";
 
